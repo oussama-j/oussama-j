@@ -1,0 +1,1 @@
+jq -s 'map(.[]) | group_by(.shortname) | map(add)' response1.json response2.json response3.json
