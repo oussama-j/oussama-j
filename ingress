@@ -1,0 +1,1 @@
+kubectl get ingress -o custom-columns=NAME:.metadata.name,PATH:.spec.rules[0].http.paths[0].path,PATHTYPE:.spec.rules[0].http.paths[0].pathType
