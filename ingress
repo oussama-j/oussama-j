@@ -4,3 +4,6 @@ kubectl get ingress  -o jsonpath='{range .items[?(@.spec.rules[0].http.paths[0].
 
 
 kubectl get ingress -n kube -o jsonpath='{range .items[?(@.spec.rules[0].http.paths[0].path!="/")]}{.metadata.name}{"\t"}{.spec.rules[0].http.paths[0].path}{"\t"}{.spec.rules[0].http.paths[0].pathType}{"\n"}{end}'
+
+kubectl get ingress -A -o jsonpath='{range .items[*]}{range .spec.rules[*]}{range .http.paths[?(@.path!="/" && @.pathType=="Prefix")]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{.host}{"\t"}{.path}{"\t"}{.pathType}{"\n"}{end}{end}{end}'
+
