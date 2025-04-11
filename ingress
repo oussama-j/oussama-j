@@ -7,3 +7,4 @@ kubectl get ingress -n kube -o jsonpath='{range .items[?(@.spec.rules[0].http.pa
 
 kubectl get ingress -A -o jsonpath='{range .items[*]}{range .spec.rules[*]}{range .http.paths[?(@.path!="/" && @.pathType=="Prefix")]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{.host}{"\t"}{.path}{"\t"}{.pathType}{"\n"}{end}{end}{end}'
 
+grep -P '\t/[a-zA-Z0-9/]*\t' ingresses.txt
