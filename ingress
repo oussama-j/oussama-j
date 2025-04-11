@@ -1,3 +1,6 @@
 kubectl get ingress -o custom-columns=NAME:.metadata.name,PATH:.spec.rules[0].http.paths[0].path,PATHTYPE:.spec.rules[0].http.paths[0].pathType
 
 kubectl get ingress  -o jsonpath='{range .items[?(@.spec.rules[0].http.paths[0].path!="/")]}{.metadata.name}{"\t"}{.spec.rules[0].http.paths[0].path}{"\t"}{.spec.rules[0].http.paths[0].pathType}{"\n"}{end}'
+
+
+kubectl get ingress -n kube -o jsonpath='{range .items[?(@.spec.rules[0].http.paths[0].path!="/")]}{.metadata.name}{"\t"}{.spec.rules[0].http.paths[0].path}{"\t"}{.spec.rules[0].http.paths[0].pathType}{"\n"}{end}'
