@@ -1,0 +1,6 @@
+@echo off
+echo Désactivation Bluetooth...
+powershell.exe (Get-PnpDevice -FriendlyName "*Bluetooth*" | Disable-PnpDevice -Confirm:$false)
+timeout /t 3
+echo Réactivation Bluetooth...
+powershell.exe (Get-PnpDevice -FriendlyName "*Bluetooth*" | Enable-PnpDevice -Confirm:$false)
