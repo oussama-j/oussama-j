@@ -4,3 +4,23 @@ powershell.exe (Get-PnpDevice -FriendlyName "*Bluetooth*" | Disable-PnpDevice -C
 timeout /t 3
 echo Réactivation Bluetooth...
 powershell.exe (Get-PnpDevice -FriendlyName "*Bluetooth*" | Enable-PnpDevice -Confirm:$false)
+
+
+
+
+
+
+
+# Désactiver tous les périphériques Bluetooth
+Get-PnpDevice -Class Bluetooth | Where-Object { $_.Status -eq 'OK' } | ForEach-Object {
+    Write-Output "Désactivation de $($_.FriendlyName)"
+    Disable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false
+}
+
+Start-Sleep -Seconds 3
+
+# Réactiver tous les périphériques Bluetooth
+Get-PnpDevice -Class Bluetooth | Where-Object { $_.Status -eq 'Disabled' } | ForEach-Object {
+    Write-Output "Réactivation de $($_.FriendlyName)"
+    Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false
+}
