@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    stages {
+        stage('SSH with password') {
+            steps {
+                sh '''
+                    sshpass -p 'your_password' ssh -o StrictHostKeyChecking=no username@remote_host 'your_command_here'
+                '''
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Remote SSH') {
+            steps {
+                script {
+                    def remote = [
+                        name: 'test',
+                        host: '10.242.128.221',
+                        user: 'user1',
+                        credentialsId: 'sys-dev-devopsz',
+                        port: 22,
+                        allowAnyHosts: true
+                    ]
+
+                    sshCommand remote: remote, command: 'ls -lrt'
+                }
+            }
+        }
+    }
+}
