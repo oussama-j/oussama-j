@@ -28,7 +28,7 @@ pipeline {
                         name: 'test',
                         host: '10.0.0.1',
                         user: 'user1',
-                        credentialsId: 'sys-dev-devopsz',
+                        credentialsId: 'sys',
                         port: 22,
                         allowAnyHosts: true
                     ]
