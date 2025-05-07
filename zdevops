@@ -26,7 +26,7 @@ pipeline {
                 script {
                     def remote = [
                         name: 'test',
-                        host: '10.242.128.221',
+                        host: '10.0.0.1',
                         user: 'user1',
                         credentialsId: 'sys-dev-devopsz',
                         port: 22,
