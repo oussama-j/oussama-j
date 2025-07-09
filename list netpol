@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "Scanning all namespaces for NetworkPolicies with ingress/egress IP blocks..."
+echo "--------------------------------------------------------------------------"
+
+# Get all namespaces
+for ns in $(kubectl get ns --no-headers -o custom-columns=":metadata.name"); do
+  # Get all network policies in this namespace
+  netpols=$(kubectl get netpol -n "$ns" -o json)
+
+  # Use jq to extract IP blocks from ingress and egress
+  echo "$netpols" | jq -r --arg ns "$ns" '
+    .items[]? | 
+    {
+      name: .metadata.name,
+      ingress_ips: ([.spec.ingress[]?.from[]? | select(.ipBlock) | .ipBlock.cidr] | unique | join(", ")),
+      egress_ips: ([.spec.egress[]?.to[]? | select(.ipBlock) | .ipBlock.cidr] | unique | join(", "))
+    } |
+    select(.ingress_ips != "" or .egress_ips != "") |
+    "Namespace: \($ns)\nName: \(.name)\nIngress IPs: \(.ingress_ips // "None")\nEgress IPs: \(.egress_ips // "None")\n---"
+  '
+done
