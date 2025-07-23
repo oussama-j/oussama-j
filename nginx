@@ -1,0 +1,140 @@
+<VirtualHost *:443>
+
+       SSLEngine on
+       ServerName dvl-tpp-oauth.web.com
+       SSLCertificateFile    /etc/ssl/apache/hp-intranet-common-tjm.pem
+       SSLCertificateKeyFile /etc/ssl/apache/hp-intranet-common-tjm.key
+       SSLCACertificateFile  /etc/ssl/apache/trusted_ca.pem
+       
+       SSLCertificateChainFile /etc/ssl/apache/hp-intranet-common-tjm.pem
+       
+       SSLProtocol TLSv1.2
+       SSLHonorCipherOrder on
+       ProxyRequests off
+       SSLProxyEngine On
+       SSLProxyCheckPeerCN Off
+       SSLProxyCheckPeerName Off
+       SSLProxyVerify none
+       SSLVerifyClient require
+       SSLVerifyDepth 5
+       LogLevel debug ssl:trace3
+       SSLStrictSNIVHostCheck off
+       SSLInsecureRenegotiation off
+
+       CustomLog /dev/stdout combined
+       ErrorLog /dev/stderr
+
+
+      ProxyPass "/favicon.ico" "https://dvl-tpp-links.web.com/favicon.ico"
+      ProxyPassReverse "/favicon.ico" "https://dvl-tpp-links.web.com/favicon.ico"
+
+      # PROENT
+
+       ProxyPass "/aisp/proent" "https://rct-gateway-apim2.web.com/aisp_pro-ent"
+       ProxyPassReverse "/aisp/proent"  "https://rct-gateway-apim2.web.com/aisp_pro-ent"
+
+       <Location "/aisp/proent">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+       ProxyPass "/pisp/proent" "https://rct-gateway-apim2.web.com/pisp_pro-ent"
+       ProxyPassReverse "/aisp/proent"  "https://rct-gateway-apim2.web.com/pisp_pro-ent"
+
+       <Location "/pisp/proent">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+      # RETAIL
+
+       ProxyPass "/aisp/retail" "https://rct-gateway-apim2.web.com/aisp"
+       ProxyPassReverse "/aisp/retail"  "https://rct-gateway-apim2.web.com/aisp"
+      
+       <Location "/aisp/retail">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+       ProxyPass "/pisp/retail" "https://rct-gateway-apim2.web.com/pisp"
+       ProxyPassReverse "/pisp/retail" "https://rct-gateway-apim2.web.com/pisp"
+
+       <Location "/pisp/retail">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+       ProxyPass "/cbpii/retail" "https://rct-gateway-apim2.web.com/cbpii_retail"
+       ProxyPassReverse "/cbpii/retail" "https://rct-gateway-apim2.web.com/cbpii_retail"
+
+       <Location "/cbpii/retail">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+      # DEFAULT / RETAIL
+
+       ProxyPass "/aisp" "https://rct-gateway-apim2.web.com/aisp"
+       ProxyPassReverse "/aisp"  "https://rct-gateway-apim2.web.com/aisp"
+
+       <Location "/aisp">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+       ProxyPass "/pisp" "https://rct-gateway-apim2.web.com/pisp"
+       ProxyPassReverse "/pisp" "https://rct-gateway-apim2.web.com/pisp"
+
+       <Location "/pisp">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+       ProxyPass "/cbpii" "https://rct-gateway-apim2.web.com/cbpii_retail"
+       ProxyPassReverse "/cbpii" "https://rct-gateway-apim2.web.com/cbpii_retail"
+
+       <Location "/cbpii">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+
+      # FALLBACK
+
+       ProxyPass "/fallback/" "http://10.0.0.0:8080/"
+       ProxyPassReverse "/fallback/" "http://10.0.0.0:8080/"
+       <Location "/fallback/">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+      # AUTH-HANDLER
+
+       ProxyPass "/" "https://dvl-auth-handler.web.com/"
+       ProxyPassReverse "/" "https://dvl-auth-handler.web.com/"
+       <Location "/">
+         RequestHeader set X-Client-Ip "%{REMOTE_ADDR}s"
+         RequestHeader set X-Request-Uri "%{REQUEST_URI}s"
+         RequestHeader set X-Client-Dn "%{SSL_CLIENT_S_DN}s"
+         RequestHeader set X-Client-Cert "%{SSL_CLIENT_CERT}s"
+       </Location>
+
+    </VirtualHost>
