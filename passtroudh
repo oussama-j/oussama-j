@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "Searching for Ingresses with ssl-passthrough: true..."
+
+# Get all namespaces
+namespaces=$(kubectl get ns --no-headers -o custom-columns=":metadata.name")
+
+# Loop through each namespace
+for ns in $namespaces; do
+  ingresses=$(kubectl get ingress -n "$ns" --no-headers -o custom-columns=":metadata.name" 2>/dev/null)
+  
+  for ing in $ingresses; do
+    if kubectl get ingress "$ing" -n "$ns" -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/ssl-passthrough}' 2>/dev/null | grep -q "true"; then
+      echo "✅ Ingress '$ing' in namespace '$ns' has ssl-passthrough: true"
+    fi
+  done
+done
