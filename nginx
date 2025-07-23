@@ -1,0 +1,84 @@
+server {
+    listen 443 ssl;
+    server_name dvl-tpp-oauth.web.com;
+
+    ssl_certificate           /etc/ssl/apache/hp-intranet-common-tjm.pem;
+    ssl_certificate_key       /etc/ssl/apache/hp-intranet-common-tjm.key;
+    ssl_client_certificate    /etc/ssl/apache/trusted_ca.pem;
+    ssl_verify_client         on;
+    ssl_verify_depth          5;
+
+    ssl_protocols             TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+    access_log /dev/stdout combined;
+    error_log  /dev/stderr debug;
+
+    # Set common headers for all locations
+    set $client_dn "";
+    set $client_cert "";
+    set $remote_addr "";
+    set $request_uri "";
+
+    map $ssl_client_s_dn $client_dn { default $ssl_client_s_dn; }
+    map $ssl_client_cert $client_cert { default $ssl_client_cert; }
+    map $remote_addr $real_ip { default $remote_addr; }
+    map $request_uri $uri_var { default $request_uri; }
+
+    proxy_set_header X-Client-Ip     $real_ip;
+    proxy_set_header X-Request-Uri   $uri_var;
+    proxy_set_header X-Client-Dn     $client_dn;
+    proxy_set_header X-Client-Cert   $client_cert;
+
+    # Disabling SNI strict check (equivalent to SSLStrictSNIVHostCheck off)
+    ssl_server_name on;
+
+    location = /favicon.ico {
+        proxy_pass https://dvl-tpp-links.web.com/favicon.ico;
+    }
+
+    ## PROENT
+    location /aisp/proent {
+        proxy_pass https://rct-gateway-apim2.web.com/aisp_pro-ent;
+    }
+
+    location /pisp/proent {
+        proxy_pass https://rct-gateway-apim2.web.com/pisp_pro-ent;
+    }
+
+    ## RETAIL
+    location /aisp/retail {
+        proxy_pass https://rct-gateway-apim2.web.com/aisp;
+    }
+
+    location /pisp/retail {
+        proxy_pass https://rct-gateway-apim2.web.com/pisp;
+    }
+
+    location /cbpii/retail {
+        proxy_pass https://rct-gateway-apim2.web.com/cbpii_retail;
+    }
+
+    ## DEFAULT / RETAIL
+    location /aisp {
+        proxy_pass https://rct-gateway-apim2.web.com/aisp;
+    }
+
+    location /pisp {
+        proxy_pass https://rct-gateway-apim2.web.com/pisp;
+    }
+
+    location /cbpii {
+        proxy_pass https://rct-gateway-apim2.web.com/cbpii_retail;
+    }
+
+    ## FALLBACK
+    location /fallback/ {
+        proxy_pass http://10.0.0.0:8080/;
+    }
+
+    ## AUTH-HANDLER
+    location / {
+        proxy_pass https://dvl-auth-handler.web.com/;
+    }
+}
