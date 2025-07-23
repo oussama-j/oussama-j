@@ -1,0 +1,43 @@
+kubectl create secret tls hp-intranet-tls \
+  --cert=hp-intranet-common-tjm.pem \
+  --key=hp-intranet-common-tjm.key \
+  -n your-namespace
+
+
+
+kubectl create secret generic trusted-ca \
+  --from-file=ca.crt=trusted_ca.pem \
+  -n your-namespace
+
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hp-intranet
+  namespace: your-namespace
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "your-namespace/trusted-ca"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
+    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
+spec:
+  ingressClassName: nginx # only if using named ingress classes
+  tls:
+    - hosts:
+        - your.domain.com
+      secretName: hp-intranet-tls
+  rules:
+    - host: your.domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: your-nginx-service
+                port:
+                  number: 80
