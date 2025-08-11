@@ -2,3 +2,19 @@ for ns in $(kubectl get ns --no-headers -o custom-columns=:metadata.name); do
   kubectl get cronjobs -n "$ns" \
     -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,PARALLELISM:.spec.jobTemplate.spec.parallelism,CONCURRENCY_POLICY:.spec.concurrencyPolicy,TTL_AFTER_FINISHED:.spec.jobTemplate.spec.ttlSecondsAfterFinished'
 done
+
+
+
+
+echo "NAMESPACE,NAME,PARALLELISM,CONCURRENCY_POLICY,TTL_AFTER_FINISHED"
+
+for ns in $(kubectl get ns --no-headers -o custom-columns=:metadata.name); do
+  kubectl get cronjobs -n "$ns" -o json | \
+  jq -r '.items[] | [
+      .metadata.namespace,
+      .metadata.name,
+      (.spec.jobTemplate.spec.parallelism // ""),
+      (.spec.concurrencyPolicy // ""),
+      (.spec.jobTemplate.spec.ttlSecondsAfterFinished // "")
+    ] | @csv'
+done
