@@ -104,12 +104,10 @@ PROJECT_PATH_ENCODED=$(echo "$PROJECT_PATH" | sed 's/\//%2F/g')
 echo -e "${BLUE}[INFO]${NC} Fetching project information..."
 
 # Get project information to verify access and get project ID
-PROJECT_INFO=$(curl -s -w "HTTPSTATUS:%{http_code}" \
-    --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "$GITLAB_API_URL/projects/$PROJECT_PATH_ENCODED")
-
-HTTP_STATUS=$(echo "$PROJECT_INFO" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-PROJECT_BODY=$(echo "$PROJECT_INFO" | sed -e 's/HTTPSTATUS:.*//g')
+TEMP_FILE="temp_project_$.json"
+curl -s -o "$TEMP_FILE" -w "%{http_code}" --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$GITLAB_API_URL/projects/$PROJECT_PATH_ENCODED" > temp_status_$.txt
+HTTP_STATUS=$(cat temp_status_$.txt)
+PROJECT_BODY=$(cat "$TEMP_FILE")
 
 if [[ $HTTP_STATUS -ne 200 ]]; then
     echo -e "${RED}[ERROR]${NC} Failed to fetch project information (HTTP $HTTP_STATUS)"
@@ -120,6 +118,8 @@ if [[ $HTTP_STATUS -ne 200 ]]; then
     else
         echo "Response: $PROJECT_BODY"
     fi
+    # Cleanup temp files
+    rm -f "$TEMP_FILE" temp_status_$.txt
     exit 1
 fi
 
@@ -129,10 +129,15 @@ PROJECT_NAME=$(echo "$PROJECT_BODY" | grep -o '"name":"[^"]*"' | head -1 | cut -
 
 if [[ -z "$PROJECT_ID" ]]; then
     echo -e "${RED}[ERROR]${NC} Could not extract project ID from response"
+    # Cleanup temp files
+    rm -f "$TEMP_FILE" temp_status_$.txt
     exit 1
 fi
 
 echo -e "${GREEN}[SUCCESS]${NC} Found project: $PROJECT_NAME (ID: $PROJECT_ID)"
+
+# Cleanup temp files
+rm -f "$TEMP_FILE" temp_status_$.txt
 
 # Convert scopes to JSON array format
 IFS=',' read -ra SCOPE_ARRAY <<< "$SCOPES"
@@ -156,15 +161,10 @@ JSON_PAYLOAD="$JSON_PAYLOAD}"
 echo -e "${BLUE}[INFO]${NC} Creating deploy token..."
 
 # Create deploy token
-TOKEN_RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
-    --request POST \
-    --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    --header "Content-Type: application/json" \
-    --data "$JSON_PAYLOAD" \
-    "$GITLAB_API_URL/projects/$PROJECT_ID/deploy_tokens")
-
-HTTP_STATUS=$(echo "$TOKEN_RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-TOKEN_BODY=$(echo "$TOKEN_RESPONSE" | sed -e 's/HTTPSTATUS:.*//g')
+TEMP_TOKEN_FILE="temp_token_$.json"
+curl -s -o "$TEMP_TOKEN_FILE" -w "%{http_code}" --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --header "Content-Type: application/json" --data "$JSON_PAYLOAD" "$GITLAB_API_URL/projects/$PROJECT_ID/deploy_tokens" > temp_token_status_$.txt
+HTTP_STATUS=$(cat temp_token_status_$.txt)
+TOKEN_BODY=$(cat "$TEMP_TOKEN_FILE")
 
 if [[ $HTTP_STATUS -ne 201 ]]; then
     echo -e "${RED}[ERROR]${NC} Failed to create deploy token (HTTP $HTTP_STATUS)"
@@ -176,6 +176,8 @@ if [[ $HTTP_STATUS -ne 201 ]]; then
     else
         echo "Response: $TOKEN_BODY"
     fi
+    # Cleanup temp files
+    rm -f "$TEMP_TOKEN_FILE" temp_token_status_$.txt
     exit 1
 fi
 
@@ -197,12 +199,13 @@ if [[ ! -f "$YAML_FILE" ]]; then
 fi
 
 # Append token data to YAML file
-cat >> "$YAML_FILE" << EOF
-- url: $REPO_URL
-  deploy_token: $TOKEN_VALUE
-EOF
+echo "- url: $REPO_URL" >> "$YAML_FILE"
+echo "  deploy_token: $TOKEN_VALUE" >> "$YAML_FILE"
 
 echo -e "${GREEN}[SUCCESS]${NC} Token saved to $YAML_FILE"
+
+# Cleanup temp files
+rm -f "$TEMP_TOKEN_FILE" temp_token_status_$.txt
 
 echo ""
 echo "=== DEPLOY TOKEN DETAILS ==="
